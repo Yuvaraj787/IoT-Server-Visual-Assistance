@@ -1,0 +1,19 @@
+{
+  "name": "iot-project",
+  "version": "1.0.0",
+  "description": "backend server for Iot Project",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "yuvaraj",
+  "license": "ISC",
+  "dependencies": {
+    "axios": "^1.6.8",
+    "body-parser": "^1.20.2",
+    "cloudinary": "^2.2.0",
+    "cors": "^2.8.5",
+    "express": "^4.19.2",
+    "openai": "^4.43.0"
+  }
+}
