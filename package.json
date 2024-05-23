@@ -9,6 +9,8 @@
   "author": "yuvaraj",
   "license": "ISC",
   "dependencies": {
+    "audio-decode": "^2.2.0",
+    "audiobuffer-to-blob": "^1.0.2",
     "axios": "^1.6.8",
     "body-parser": "^1.20.2",
     "cloudinary": "^2.2.0",

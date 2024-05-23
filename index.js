@@ -4,45 +4,56 @@ const app = express()
 const bodyParser = require("body-parser")
 const fs = require("fs")
 const axios = require("axios");
-const { v2 } = require("cloudinary")
+const { v2 } = require("cloudinary");
 
 v2.config({
-    cloud_name:"dzcxy6zsg",
-    api_key:"867754147488345",
-    api_secret:"T1MK5A2gfcv6uJstue7yEtVVzX0"
+    cloud_name: "dzcxy6zsg",
+    api_key: "867754147488345",
+    api_secret: "T1MK5A2gfcv6uJstue7yEtVVzX0"
 })
 
 app.use(bodyParser.urlencoded({ extended: true }))
 
 
 async function uploadToCloudAndReturnUrl() {
-    const uploadResult = await v2.uploader.upload("./images/last_image.jpeg", {
-        public_id: "ESP32CAM"
-    }).catch((error)=>{console.log(error)});   
-    return uploadResult.url
+    try {
+        const uploadResult = await v2.uploader.upload("./images/last_image.jpg", {
+            public_id: "ESP32CAM"
+        }).catch(err => console.log(err));
+
+        console.log(uploadResult)
+        return uploadResult.url
+    } catch (err) {
+        console.log("Error in uploading image to cloud : ", err.message)
+        return ""
+    }
 }
 
 
 
 app.get("/getAudio", async (req, res) => {
-    console.log("request received")
-    let fileBlob = req.body.myFile;
+    try {
+        console.log("request received")
+        let fileBlob = req.body.myFile;
 
-    res.writeHead(200, { "Content-Type": "text/html" })
-    if (createFile(fileBlob, "./images/last_image.jpg")) {
-        res.write("Image uploaded successuflly");
-        res.write("the image describes there is boy sitting infront of you");
-    } else {
-        res.write("Sorry boss! something went wrong")
+        res.writeHead(200, { "Content-Type": "text/html" })
+        if (createFile(fileBlob, "./images/last_image.jpg")) {
+            res.write("Image uploaded successuflly");
+            res.write("the image describes there is boy sitting infront of you");
+        } else {
+            res.write("Sorry boss! something went wrong")
+        }
+
+        let image_url = await uploadToCloudAndReturnUrl();
+        console.log("image url : " + image_url)
+        let image_desciption = await describeImage(image_url);
+        console.log("Image caption : " + image_desciption)
+        convertTextToAudio(image_desciption); // yet to complete by dhanush
+    } catch (err) {
+        console.log("Overall error : ",  err.message)
     }
-
-    let image_url = uploadToCloudAndReturnUrl();
-    let image_desciption = describeImage();
-    convertTextToAudio(image_desciption); // yet to complete by dhanush
     res.end()
 })
-
-
 
 
 function createFile(blob, fileName) {
@@ -65,7 +76,6 @@ function createFile(blob, fileName) {
 
 
 async function describeImage(image_url) {
-    console.log("function called")
     try {
 
         const response = await axios.post("https://aivisionforiot.cognitiveservices.azure.com/computervision/imageanalysis:analyze", {
@@ -83,10 +93,9 @@ async function describeImage(image_url) {
 
         const description = response.data.captionResult.text;
 
-        console.log(description)
         return description
     } catch (err) {
-        console.log("Error catched : ", err)
+        console.log("Error catched while describing image : " +  err.message)
         return "Sorry, something went wrong";
     }
 }
@@ -95,6 +104,15 @@ function convertTextToAudio(textContent) {
     // convert the text to audio and save the mp3 in Audio/voice.mp3
 
 }
+
+
+// async function mp3ToBlob() {
+//     const buffer = fs.readFileSync("./Audio/audio.mp3")
+//     console.log(buffer.toString())
+//     return buffer;
+// }
+
+// console.log(mp3ToBlob())
 
 
 
