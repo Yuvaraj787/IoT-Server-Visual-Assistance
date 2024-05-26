@@ -14,10 +14,28 @@ v2.config({
 
 app.use(bodyParser.urlencoded({ extended: true }))
 
+const { spawn } = require('child_process');
+
+function playAudio(image_desciption) {
+    const pythonProcess = spawn('python3', ['/home/yuvi/server/IoT-Server-Visual-Assistance/Audio/play.py', image_desciption]);
+
+    pythonProcess.stdout.on('data', (data) => {
+        console.log(`stdout: ${data}`);
+    });
+    
+    pythonProcess.stderr.on('data', (data) => {
+        console.error(`stderr: ${data}`);
+    });
+    
+    pythonProcess.on('close', (code) => {
+        console.log(`child process exited with code ${code}`);
+    });
+}
+
 
 async function uploadToCloudAndReturnUrl() {
     try {
-        const uploadResult = await v2.uploader.upload("./images/last_image.jpg", {
+        const uploadResult = await v2.uploader.upload("/home/yuvi/server/IoT-Server-Visual-Assistance/images/last_image.jpg", {
             public_id: "ESP32CAM"
         }).catch(err => console.log(err));
 
@@ -37,9 +55,8 @@ app.get("/getAudio", async (req, res) => {
         let fileBlob = req.body.myFile;
 
         res.writeHead(200, { "Content-Type": "text/html" })
-        if (createFile(fileBlob, "./images/last_image.jpg")) {
+        if (createFile(fileBlob, "/home/yuvi/server/IoT-Server-Visual-Assistance/images/last_image.jpg")) {
             res.write("Image uploaded successuflly");
-            res.write("the image describes there is boy sitting infront of you");
         } else {
             res.write("Sorry boss! something went wrong")
         }
@@ -48,7 +65,7 @@ app.get("/getAudio", async (req, res) => {
         console.log("image url : " + image_url)
         let image_desciption = await describeImage(image_url);
         console.log("Image caption : " + image_desciption)
-        convertTextToAudio(image_desciption); // yet to complete by dhanush
+        playAudio(image_desciption)
     } catch (err) {
         console.log("Overall error : ",  err.message)
     }
@@ -98,11 +115,6 @@ async function describeImage(image_url) {
         console.log("Error catched while describing image : " +  err.message)
         return "Sorry, something went wrong";
     }
-}
-
-function convertTextToAudio(textContent) {
-    // convert the text to audio and save the mp3 in Audio/voice.mp3
-
 }
 
 
